@@ -15,14 +15,12 @@ import android.widget.SimpleCursorAdapter;
 import com.atteo.langleo_trial.R;
 import com.atteo.langleo_trial.models.Word;
 import com.bomot113.langleo.DictSearch.FTSData;
-import com.bomot113.langleo.models.SearchList;
 
 
 
 public class SearchableActivity extends ListActivity {
 
 	private SimpleCursorAdapter adapter;
-	private SearchList list;
 	private final int REQUEST_EDIT_WORD = 2;
 	private String query="";
 	private Cursor cursor;
@@ -44,8 +42,6 @@ public class SearchableActivity extends ListActivity {
 	}
 
 	private void doSearchWords(String query) {
-		// TODO Auto-generated method stub
-		list = new SearchList(1, null);
 		ListView list = getListView();
 		this.query = query;
 		list.setOnItemClickListener(new OnItemClickListener() {
@@ -53,12 +49,13 @@ public class SearchableActivity extends ListActivity {
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
+				
 				editWord((int) id);
 			}
 
 		});
 
-		//registerForContextMenu(list);
+		registerForContextMenu(list);
 	}
 	
 	public void onResume() {
@@ -68,25 +65,51 @@ public class SearchableActivity extends ListActivity {
 	
 	public void refreshList() {
 		ListView list = getListView();
-		this.cursor = search(this.query);
+		this.cursor = searchInWordsNTrans(this.query);
 		adapter = new SimpleCursorAdapter(this, R.layout.word_item,
 				this.cursor, new String[] { FTSData.KEY_WORD, FTSData.KEY_TRANSLATION}, new int[] {
 						R.id.word_word, R.id.word_translation });
 		list.setAdapter(adapter);
 	}
 	
-    private Cursor search(String query) {
+//    private Cursor searchInWords(String query) {
+//        query = query.toLowerCase();
+//        String[] columns = new String[] {
+//        	BaseColumns._ID,
+//            FTSData.KEY_PATH,
+//            FTSData.KEY_WORD,
+//            FTSData.KEY_TRANSLATION};
+//
+//        return this.SearchableData.getWordMatches(query, columns);
+//    }
+
+    private Cursor searchInWordsNTrans(String query) {
         query = query.toLowerCase();
         String[] columns = new String[] {
         	BaseColumns._ID,
-//            FTSData.KEY_ID,
-//            FTSData.KEY_PATH,
+            FTSData.KEY_PATH,
             FTSData.KEY_WORD,
             FTSData.KEY_TRANSLATION};
 
-        return this.SearchableData.getWordMatches(query, columns);
-      }
+        return this.SearchableData.getWordMatchesTransNWords(query, columns);
+    }
     
+	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
+		// we only save data when result_ok is returned
+		if (resultCode == RESULT_CANCELED)
+			return;
+		Bundle b;
+		switch (requestCode) {
+		case REQUEST_EDIT_WORD:
+			b = intent.getBundleExtra("word");
+			Word word = new Word();
+			word.loadBundle(b);
+			word.save();
+			refreshList();
+			break;
+		}
+	}
+	
 	public void editWord(int id) {
 		Intent intent = new Intent(getApplicationContext(), EditWord.class);
 		intent.putExtra("word", new Word(id).toBundle());

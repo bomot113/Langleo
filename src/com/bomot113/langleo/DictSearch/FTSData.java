@@ -1,20 +1,25 @@
 package com.bomot113.langleo.DictSearch;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
+import android.os.SystemClock;
 import android.provider.BaseColumns;
 import android.util.Log;
 
-import com.atteo.langleo_trial.models.Word;
 import com.atteo.silo.Silo;
+
 
 public class FTSData {
 	 private static final String TAG = "DictionaryDatabase";
@@ -22,13 +27,13 @@ public class FTSData {
 	    //The columns we'll include in the dictionary table
 	    public static final String KEY_WORD = SearchManager.SUGGEST_COLUMN_TEXT_1;
 	    public static final String KEY_TRANSLATION = SearchManager.SUGGEST_COLUMN_TEXT_2;
-	    public static final String KEY_PATH = "SUGGEST_COLUMN_TEXT_3";
+	    public static final String KEY_PATH = "suggest_text_3";
 	    public static final String KEY_ID = "WordID";
 	    
 	    private static final String DATABASE_NAME = "Langleo";
 	    private static final String FTS_VIRTUAL_TABLE = "FTSdictionary";
 	    private static final int DATABASE_VERSION = 2;
-
+	    
 	    private final DictionaryOpenHelper mDatabaseOpenHelper;
 	    private static final HashMap<String,String> mColumnMap = buildColumnMap();
 
@@ -38,6 +43,8 @@ public class FTSData {
 	     */
 	    public FTSData(Context context) {
 	        mDatabaseOpenHelper = new DictionaryOpenHelper(context);
+	        mDatabaseOpenHelper.getReadableDatabase();
+	        
 	    }
 
 	    /**
@@ -50,9 +57,8 @@ public class FTSData {
 	        HashMap<String,String> map = new HashMap<String,String>();
 	        map.put(KEY_WORD, KEY_WORD);
 	        map.put(KEY_TRANSLATION, KEY_TRANSLATION);
-//	        map.put(KEY_PATH, KEY_PATH);
-//	        map.put(KEY_ID, KEY_ID);
-	        map.put(BaseColumns._ID, "rowid AS " +
+	        map.put(KEY_PATH, KEY_PATH);
+	        map.put(BaseColumns._ID, KEY_ID + " AS " +
 	                BaseColumns._ID);
 	        map.put(SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID, "rowid AS " +
 	                SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID);
@@ -69,7 +75,7 @@ public class FTSData {
 	     * @return Cursor positioned to matching word, or null if not found.
 	     */
 	    public Cursor getWord(String rowId, String[] columns) {
-	        String selection = "rowid = ?";
+	        String selection = KEY_ID + " = ?";
 	        String[] selectionArgs = new String[] {rowId};
 
 	        return query(selection, selectionArgs, columns);
@@ -99,15 +105,46 @@ public class FTSData {
 	         *
 	         * - "rowid" is the unique id for all rows but we need this value for the "_id" column in
 	         *    order for the Adapters to work, so the columns need to make "_id" an alias for "rowid"
-	         * - "rowid" also needs to be used by the SUGGEST_COLUMN_INTENT_DATA alias in order
-	         *   for suggestions to carry the proper intent data.
-	         *   These aliases are defined in the DictionaryProvider when queries are made.
-	         * - This can be revised to also search the definition text with FTS3 by changing
-	         *   the selection clause to use FTS_VIRTUAL_TABLE instead of KEY_WORD (to search across
-	         *   the entire table, but sorting the relevance could be difficult.
+	         *    HOWEVER, we use the WordID as _id to hook up the words in search result and real words
+	         *    in database.
 	         */
 	    }
 
+	    
+	    /**
+	     * Returns a Cursor over all words that have translation and words
+	     * match the given query
+	     * 
+	     * @param query The string to search for
+	     * @param columns The columns to be returned, if null then all are included
+	     * @return Cursor over all words that match, or null if none found.
+	     */
+	    public Cursor getWordMatchesTransNWords(String query, String[] columns) {
+	        String selection = KEY_ID + " IN " +
+				 	   "(SELECT "+ KEY_ID +" FROM " + FTS_VIRTUAL_TABLE + 
+				 	   " WHERE " + KEY_WORD + " MATCH " + "\"*"+ query+"*\" "+
+				 	   " UNION " +
+				 	   " SELECT "+ KEY_ID +" FROM " + FTS_VIRTUAL_TABLE + 
+				 	   " WHERE " + KEY_TRANSLATION + " MATCH "+ "\"*"+ query+"*\") ";
+	        return query(selection, null, columns);
+
+	        /* This builds a query that looks like:
+	         *     SELECT <columns> FROM <table> Result
+			 *	   WHERE Result.WordID IN
+			 *	   (SELECT WordID FROM <table> WHERE <KEY_WORD> MATCH "*query*"
+			 *		UNION
+			 *		SELECT WordID FROM <table> WHERE <KEY_TRANSLATION> MATCH "*query*")
+			 *
+	         * which is an FTS3 search for the query text (plus a wildcard) inside the word column.
+	         *
+	         * - "rowid" is the unique id for all rows but we need this value for the "_id" column in
+	         *    order for the Adapters to work, so the columns need to make "_id" an alias for "rowid"
+	         *    HOWEVER, we use the WordID as _id to hook up the words in search result and real words
+	         *    in database.
+	         */
+	    }
+
+	    
 	    /**
 	     * Performs a database query.
 	     * @param selection The selection clause
@@ -124,10 +161,22 @@ public class FTSData {
 	        builder.setTables(FTS_VIRTUAL_TABLE);
 	        builder.setProjectionMap(mColumnMap);
 
+	        // Execute SQL statement
+	        long startTime = SystemClock.currentThreadTimeMillis();
 	        Cursor cursor = builder.query(mDatabaseOpenHelper.getReadableDatabase(),
 	                columns, selection, selectionArgs, null, null, null);
+			long endTime = SystemClock.currentThreadTimeMillis();
+			String columnsString = "";
+			for (int i = 0; i < columns.length; ++i) {
+				if (i != 0)
+					columnsString = columnsString + ",";
+				columnsString = columnsString + columns[i];
+			}
+			Log.d(TAG, "Select query in table '" + FTS_VIRTUAL_TABLE + "' ("
+					+ columnsString + ") with where '" + selection
+					+ "' executed in " + (endTime - startTime) + "ms");
 
-	        if (cursor == null) {
+			if (cursor == null) {
 	            return null;
 	        } else if (!cursor.moveToFirst()) {
 	            cursor.close();
@@ -143,7 +192,8 @@ public class FTSData {
 	    private static class DictionaryOpenHelper extends SQLiteOpenHelper {
 
 	        private SQLiteDatabase mDatabase;
-
+	        private final Context mHelperContext;
+	        
 	        /* Note that FTS3 does not support column constraints and thus, you cannot
 	         * declare a primary key. However, "rowid" is automatically used as a unique
 	         * identifier, so when making requests, we will use "_id" as an alias for "rowid"
@@ -157,6 +207,7 @@ public class FTSData {
 	                    KEY_ID +");";
 	        DictionaryOpenHelper(Context context) {
 	            super(context, DATABASE_NAME, null, DATABASE_VERSION);
+	            mHelperContext = context;
 	        }
 
 	        @Override
@@ -164,9 +215,34 @@ public class FTSData {
 	            mDatabase = db;
 	            mDatabase.execSQL(FTS_TABLE_CREATE);
 	            loadDictionary();
+	            try {
+					configDatabase(mDatabase);
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
 	        }
 
-	        /**
+	        private void configDatabase(SQLiteDatabase mDatabase) throws IOException {
+	        	Log.d(TAG, "Loading triggers...");
+	            final Resources resources = mHelperContext.getResources();
+	            InputStream inputStream = resources.openRawResource(com.atteo.langleo_trial.R.raw.langleo_10200_sql);
+	            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+
+	            try {
+	                String line;
+	                String batchSQlStatement = "";
+	                while ((line = reader.readLine()) != null) {
+	                    batchSQlStatement += line + " \n ";
+	                }
+	                mDatabase.execSQL(batchSQlStatement);
+	            } finally {
+	                reader.close();
+	            }
+	            Log.d(TAG, "DONE loading trigger.");
+				
+			}
+
+			/**
 	         * Starts a thread to load the database table with words
 	         */
 	        private void loadDictionary() {
@@ -183,7 +259,6 @@ public class FTSData {
 
 	        private void loadWords() throws IOException {
 	            Log.d(TAG, "Loading words...");
-	            Word aWord = new Word();
 	    		String query = 
 	    			"SELECT substr( c.name || '          ',1,10) as Collection_Name, "+
 	                  "substr( l.name || '          ',1,10) as List_Name, "+
