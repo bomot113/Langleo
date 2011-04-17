@@ -16,7 +16,11 @@
 			</intent-filter>
 		</activity>
 		<activity android:name=".activities.Collections"
-			android:stateNotNeeded="true" />
+			android:stateNotNeeded="true" >
+			<!-- enable the search dialog to send searches to SearchableActivity -->
+	        <meta-data android:name="android.app.default_searchable"
+	                   android:value=".activities.SearchableActivity" />
+		</activity>
 		<activity android:name=".activities.Download" />
 		<activity android:name=".activities.StackDetails" />
 		<activity android:name=".activities.EditCollection" />
@@ -33,6 +37,14 @@
 			android:stateNotNeeded="true" />
 		<activity android:name=".activities.Study"
 			android:launchMode="singleTask" android:screenOrientation="portrait" />
+		<!-- TBM: Searchable activity -->
+		<activity android:name=".activities.SearchableActivity">
+			<intent-filter>
+	            <action android:name="android.intent.action.SEARCH" />
+	        </intent-filter>
+	        <meta-data android:name="android.app.searchable"
+	                   android:resource="@xml/searchable"/>
+		</activity>
 	</application>
 	<uses-sdk android:minSdkVersion="4"/>
 
