@@ -1,0 +1,9 @@
+CREATE  TRIGGER  IF NOT EXISTS "u_tWord" AFTER UPDATE ON Word FOR EACH ROW  
+BEGIN 
+
+UPDATE FTSDictionary 
+SET suggest_text_1 = NEW.Word,
+    suggest_text_2 = NEW.Translation
+WHERE wordID = NEW.ID; 
+
+END;
