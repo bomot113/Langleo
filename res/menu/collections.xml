@@ -2,8 +2,8 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 	<item android:icon="@drawable/menu_add" android:id="@+id/new_collection"
 		android:title="@string/new_collection" android:titleCondensed="@string/new_"></item>
-	<item android:title="@string/help" android:titleCondensed="@string/help"
-		android:icon="@drawable/menu_help" android:id="@+id/collections_help"></item>
+	<item android:title="@string/search" android:id="@+id/collections_search" 
+		android:icon="@drawable/search" android:titleCondensed="@string/search"></item>
 	<item android:icon="@drawable/menu_backup" android:id="@+id/collections_backup"
 		android:title="@string/backup"></item>
 	<item android:title="@string/restore" 

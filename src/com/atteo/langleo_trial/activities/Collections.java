@@ -65,7 +65,10 @@ public class Collections extends ListActivity {
 
 		setListAdapter(adapter);
 		setContentView(R.layout.collections_list);
-
+		
+		// TBM: call search dialog when press a key
+		setDefaultKeyMode(DEFAULT_KEYS_SEARCH_LOCAL);
+		
 		TaskManager.setCollections(this);
 
 		ListView list = getListView();
@@ -341,8 +344,8 @@ public class Collections extends ListActivity {
 			startActivityForResult(intent, REQUEST_NEW_COLLECTION);
 			break;
 
-		case R.id.collections_help:
-			showHelp();
+		case R.id.collections_search:
+			onSearchRequested();
 			break;
 
 		case R.id.collections_backup:
@@ -393,12 +396,7 @@ public class Collections extends ListActivity {
 		new RestoreTask().execute();
 	}
 
-	private void showHelp() {
-		Intent intent = new Intent(this, Help.class);
-		intent.putExtra("part", "collections");
-		startActivity(intent);
-	}
-
+	
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		if (requestCode == REQUEST_COLLECTION_LISTS)
 			updateListItem(enteredCollection);
