@@ -32,7 +32,7 @@ public class FTSData {
 	    
 	    private static final String DATABASE_NAME = "Langleo";
 	    private static final String FTS_VIRTUAL_TABLE = "FTSdictionary";
-	    private static final int DATABASE_VERSION = 2;
+	    private static final int DATABASE_VERSION = 4;
 	    
 	    private final DictionaryOpenHelper mDatabaseOpenHelper;
 	    private static final HashMap<String,String> mColumnMap = buildColumnMap();
@@ -208,26 +208,39 @@ public class FTSData {
 	        DictionaryOpenHelper(Context context) {
 	            super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	            mHelperContext = context;
+
 	        }
 
 	        @Override
 	        public void onCreate(SQLiteDatabase db) {
 	            mDatabase = db;
 	            mDatabase.execSQL(FTS_TABLE_CREATE);
-	            loadDictionary();
 	            try {
 					configDatabase(mDatabase);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
+	            loadDictionary();
 	        }
 
 	        private void configDatabase(SQLiteDatabase mDatabase) throws IOException {
 	        	Log.d(TAG, "Loading triggers...");
-	            final Resources resources = mHelperContext.getResources();
-	            InputStream inputStream = resources.openRawResource(com.atteo.langleo_trial.R.raw.langleo_10200_sql);
-	            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+	            mDatabase.execSQL("DROP TRIGGER IF EXISTS d_tWord");
+	            mDatabase.execSQL("DROP TRIGGER IF EXISTS i_tWord");
+	            mDatabase.execSQL("DROP TRIGGER IF EXISTS u_tWord");
+	            
+	            runBatchSQL(com.atteo.langleo_trial.R.raw.trigger_i_tword_sql);
+	            runBatchSQL(com.atteo.langleo_trial.R.raw.trigger_u_tword_sql);
+	            runBatchSQL(com.atteo.langleo_trial.R.raw.trigger_d_tword_sql);
 
+	            Log.d(TAG, "DONE loading trigger.");
+				
+			}
+
+	        private void runBatchSQL(int triggerITwordSql) throws IOException{
+	        	final Resources resources = mHelperContext.getResources();
+	            InputStream inputStream = resources.openRawResource(com.atteo.langleo_trial.R.raw.trigger_u_tword_sql);
+	            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));	              
 	            try {
 	                String line;
 	                String batchSQlStatement = "";
@@ -238,10 +251,7 @@ public class FTSData {
 	            } finally {
 	                reader.close();
 	            }
-	            Log.d(TAG, "DONE loading trigger.");
-				
-			}
-
+	        }
 			/**
 	         * Starts a thread to load the database table with words
 	         */
