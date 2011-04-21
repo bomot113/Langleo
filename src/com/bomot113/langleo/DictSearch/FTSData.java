@@ -1,15 +1,11 @@
 package com.bomot113.langleo.DictSearch;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import android.app.SearchManager;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.res.Resources;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -18,6 +14,7 @@ import android.os.SystemClock;
 import android.provider.BaseColumns;
 import android.util.Log;
 
+import com.atteo.langleo_trial.Langleo;
 import com.atteo.silo.Silo;
 
 
@@ -30,23 +27,48 @@ public class FTSData {
 	    public static final String KEY_PATH = "suggest_text_3";
 	    public static final String KEY_ID = "WordID";
 	    
-	    private static final String DATABASE_NAME = "Langleo";
 	    private static final String FTS_VIRTUAL_TABLE = "FTSdictionary";
-	    private static final int DATABASE_VERSION = 4;
-	    
-	    private final DictionaryOpenHelper mDatabaseOpenHelper;
-	    private static final HashMap<String,String> mColumnMap = buildColumnMap();
 
+	    private static DictionaryOpenHelper mDatabaseOpenHelper;
+	    private static final HashMap<String,String> mColumnMap = buildColumnMap();
+	    private static SQLiteDatabase mDatabase;
+        public static final String FTS_TABLE_CREATE =
+            "CREATE VIRTUAL TABLE " + FTS_VIRTUAL_TABLE +
+            " USING fts3 (" +
+            KEY_WORD + ", " +
+            KEY_TRANSLATION + ", " +
+            KEY_PATH + ", " + 
+            KEY_ID +");";	    
 	    /**
 	     * Constructor
 	     * @param context The Context within which to work, used to create the DB
 	     */
-	    public FTSData(Context context) {
+	    public static void activateFTSData(Context context, SQLiteDatabase db) {
 	        mDatabaseOpenHelper = new DictionaryOpenHelper(context);
 	        mDatabaseOpenHelper.getReadableDatabase();
-	        
+	        mDatabase = db;
 	    }
 
+	    public static void setDatabaseVersion(Context context, int newVersion){
+			// TBM: update version
+			FTSData.activateFTSData(context, Silo.getDatabase());
+			new SQLiteOpenHelper(context, Langleo.DATABASE_NAME, null, 43) {
+				
+				@Override
+				public void onUpgrade(SQLiteDatabase paramSQLiteDatabase, int paramInt1,
+						int paramInt2) {
+					
+				}
+				
+				@Override
+				public void onCreate(SQLiteDatabase paramSQLiteDatabase) {
+					
+				}
+			};
+	    }
+	    public static void updateDBConfig() throws IOException{
+	    	mDatabaseOpenHelper.configDatabase(mDatabase);
+	    }
 	    /**
 	     * Builds a map for all columns that may be requested, which will be given to the 
 	     * SQLiteQueryBuilder. This is a good way to define aliases for column names, but must include 
@@ -119,7 +141,7 @@ public class FTSData {
 	     * @param columns The columns to be returned, if null then all are included
 	     * @return Cursor over all words that match, or null if none found.
 	     */
-	    public Cursor getWordMatchesTransNWords(String query, String[] columns) {
+	    public static Cursor getWordMatchesTransNWords(String query, String[] columns) {
 	        String selection = KEY_ID + " IN " +
 				 	   "(SELECT "+ KEY_ID +" FROM " + FTS_VIRTUAL_TABLE + 
 				 	   " WHERE " + KEY_WORD + " MATCH " + "\"*"+ query+"*\" "+
@@ -152,7 +174,7 @@ public class FTSData {
 	     * @param columns The columns to return
 	     * @return A Cursor over all rows matching the query
 	     */
-	    private Cursor query(String selection, String[] selectionArgs, String[] columns) {
+	    private static Cursor query(String selection, String[] selectionArgs, String[] columns) {
 	        /* The SQLiteBuilder provides a map for all possible columns requested to
 	         * actual columns in the database, creating a simple column alias mechanism
 	         * by which the ContentProvider does not need to know the real column names
@@ -191,75 +213,45 @@ public class FTSData {
 	     */
 	    private static class DictionaryOpenHelper extends SQLiteOpenHelper {
 
-	        private SQLiteDatabase mDatabase;
-	        private final Context mHelperContext;
-	        
+        
 	        /* Note that FTS3 does not support column constraints and thus, you cannot
 	         * declare a primary key. However, "rowid" is automatically used as a unique
 	         * identifier, so when making requests, we will use "_id" as an alias for "rowid"
 	         */
-	        private static final String FTS_TABLE_CREATE =
-	                    "CREATE VIRTUAL TABLE " + FTS_VIRTUAL_TABLE +
-	                    " USING fts3 (" +
-	                    KEY_WORD + ", " +
-	                    KEY_TRANSLATION + ", " +
-	                    KEY_PATH + ", " + 
-	                    KEY_ID +");";
-	        DictionaryOpenHelper(Context context) {
-	            super(context, DATABASE_NAME, null, DATABASE_VERSION);
-	            mHelperContext = context;
 
+	        private static final String FTS_TABLE_CLEAR =
+                "DELETE FROM " + FTS_VIRTUAL_TABLE + ";";
+	        DictionaryOpenHelper(Context context) {
+	        	super(context, Langleo.DATABASE_NAME, null, 
+	        			(Langleo.MIGRATIONS != null) ? Langleo.MIGRATIONS.length : 0);
 	        }
 
 	        @Override
 	        public void onCreate(SQLiteDatabase db) {
-	            mDatabase = db;
-	            mDatabase.execSQL(FTS_TABLE_CREATE);
 	            try {
-					configDatabase(mDatabase);
+					configDatabase(db);
 				} catch (IOException e) {
 					throw new RuntimeException(e);
 				}
-	            loadDictionary();
 	        }
 
-	        private void configDatabase(SQLiteDatabase mDatabase) throws IOException {
-	        	Log.d(TAG, "Loading triggers...");
-	            mDatabase.execSQL("DROP TRIGGER IF EXISTS d_tWord");
-	            mDatabase.execSQL("DROP TRIGGER IF EXISTS i_tWord");
-	            mDatabase.execSQL("DROP TRIGGER IF EXISTS u_tWord");
-	            
-	            runBatchSQL(com.atteo.langleo_trial.R.raw.trigger_i_tword_sql);
-	            runBatchSQL(com.atteo.langleo_trial.R.raw.trigger_u_tword_sql);
-	            runBatchSQL(com.atteo.langleo_trial.R.raw.trigger_d_tword_sql);
-
-	            Log.d(TAG, "DONE loading trigger.");
-				
+	        public void configDatabase(SQLiteDatabase mDatabase) throws IOException {
+	        	
+	            Log.d(TAG, "Loading FTS data.");
+	            loadDictionary(mDatabase);
+	            Log.d(TAG, "DONE loading FTS data.");				
 			}
 
-	        private void runBatchSQL(int triggerITwordSql) throws IOException{
-	        	final Resources resources = mHelperContext.getResources();
-	            InputStream inputStream = resources.openRawResource(com.atteo.langleo_trial.R.raw.trigger_u_tword_sql);
-	            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));	              
-	            try {
-	                String line;
-	                String batchSQlStatement = "";
-	                while ((line = reader.readLine()) != null) {
-	                    batchSQlStatement += line + " \n ";
-	                }
-	                mDatabase.execSQL(batchSQlStatement);
-	            } finally {
-	                reader.close();
-	            }
-	        }
 			/**
 	         * Starts a thread to load the database table with words
 	         */
-	        private void loadDictionary() {
+	        private static void loadDictionary(SQLiteDatabase mDatabase) {
+	        	final SQLiteDatabase db = mDatabase;
 	            new Thread(new Runnable() {
 	                public void run() {
 	                    try {
-	                        loadWords();
+	                    	db.execSQL(FTS_TABLE_CLEAR);
+	                        loadWords(db);
 	                    } catch (IOException e) {
 	                        throw new RuntimeException(e);
 	                    }
@@ -267,7 +259,7 @@ public class FTSData {
 	            }).start();
 	        }
 
-	        private void loadWords() throws IOException {
+	        private static void loadWords(SQLiteDatabase mDatabase) throws IOException {
 	            Log.d(TAG, "Loading words...");
 	    		String query = 
 	    			"SELECT substr( c.name || '          ',1,10) as Collection_Name, "+
@@ -288,7 +280,7 @@ public class FTSData {
 	                String translation = cursor.getString(3);
 	                long id = cursor.getLong(4);
 	                String path = collection.trim()+ "..\\" + list.trim() + "..";
-	                id = addWord(word.trim(), translation.trim(), path, id);
+	                id = addWord(mDatabase, word.trim(), translation.trim(), path, id);
                     if (id < 0) {
                         Log.e(TAG, "unable to add word: " + word.trim());
                     }
@@ -300,7 +292,7 @@ public class FTSData {
 	         * Add a word to the dictionary.
 	         * @return rowId or -1 if failed
 	         */
-	        public long addWord(String word, String translation, String path, long id) {
+	        public static long addWord(SQLiteDatabase mDatabase, String word, String translation, String path, long id) {
 	            ContentValues initialValues = new ContentValues();
 	            initialValues.put(KEY_WORD, word);
 	            initialValues.put(KEY_TRANSLATION, translation);
@@ -314,6 +306,7 @@ public class FTSData {
 	            Log.w(TAG, "Upgrading database from version " + oldVersion + " to "
 	                    + newVersion + ", which will destroy all old data");
 	            db.execSQL("DROP TABLE IF EXISTS " + FTS_VIRTUAL_TABLE);
+	            db.execSQL(FTSData.FTS_TABLE_CREATE);
 	            onCreate(db);
 	        }
 	    }

@@ -34,6 +34,7 @@ import com.atteo.langleo_trial.models.Word;
 import com.atteo.silo.Silo;
 import com.atteo.silo.StorableCollection;
 import com.atteo.silo.Silo.RunningMode;
+import com.bomot113.langleo.DictSearch.FTSData;
 
 public class Langleo extends Application {
 
@@ -44,7 +45,7 @@ public class Langleo extends Application {
 	public static final String DEFAULT_NEW_WORDS_PER_SESSION = "10";
 	public static final long SESSION_TIMEOUT = 1000 * 60 * 15;
 
-	private static final String[] MIGRATIONS = new String[] {
+	public static final String[] MIGRATIONS = new String[] {
 			"create table language(id integer primary key autoincrement, name text, shortName text, studystackid integer)",
 			"create table collection(id integer primary key autoincrement, name text, targetLanguage_id integer, baseLanguage_id integer, priority integer, started integer, disabled integer)",
 			"create table list(id integer primary key autoincrement, name text, collection_id integer, fromstudystack integer)",
@@ -88,6 +89,34 @@ public class Langleo extends Application {
 			"insert into language(name,shortname, studystackid) values ('Vietnamese','vi', -1)",
 			"insert into language(name,shortname, studystackid) values ('Welsh','cy', -1)",
 			"insert into language(name,shortname, studystackid) values ('Russian','ru', 28)",
+			FTSData.FTS_TABLE_CREATE,
+			"CREATE  TRIGGER  IF NOT EXISTS \"d_tWord\" AFTER DELETE ON word FOR EACH ROW " +  
+			"BEGIN "+
+			"    DELETE" + 
+			"    FROM FTSDictionary" +
+			"    WHERE wordID = OLD.ID; "+ 
+			"END;",
+			"CREATE  TRIGGER  IF NOT EXISTS \"i_tWord\" AFTER INSERT ON word FOR EACH ROW  BEGIN "+ 
+			"INSERT INTO FTSDictionary (suggest_text_1, suggest_text_2, suggest_text_3, WordID) "+
+			"SELECT "+ 
+			"       NEW.Word as suggest_text_1, " +
+			"       NEW.Translation as suggest_text_2, " +
+			"       (SELECT  trim(substr( c.name || '          ',1,10) ) || \"..|\" ||"+
+			"        	    trim(substr( l.name || '          ',1,10) ) || \"..\"" +
+			"        FROM collection c "+
+			"        JOIN list l " +
+			"          ON c.id = l.collection_id" +
+			"        WHERE l.id = NEW.list_id ) as suggest_text_3," +
+			"       (SELECT last_insert_rowid()) as WordID;" +
+			" END;",
+			"CREATE  TRIGGER  IF NOT EXISTS \"u_tWord\" AFTER UPDATE ON Word FOR EACH ROW " +  
+			"BEGIN "+ 
+			"UPDATE FTSDictionary " + 
+			"SET suggest_text_1 = NEW.Word, " +
+			"    suggest_text_2 = NEW.Translation " +
+			"WHERE wordID = NEW.ID; " + 
+			"END;",
+
 	// "create table ollianswer(id integer primary key autoincrement, repetitions integer, difficulty integer, factor real, correct integer, incorrect integer)"
 	};
 
@@ -133,6 +162,7 @@ public class Langleo extends Application {
 		getLanguages();
 
 		createDirectory();
+		
 
 	}
 
@@ -170,6 +200,9 @@ public class Langleo extends Application {
 		Silo.initializeClass(StudySession.class);
 		Silo.initializeClass(OlliFactor.class);
 		Silo.initializeClass(OlliAnswer.class);
+		// TBM: update database config for FTS search
+		FTSData.activateFTSData(dbContext, Silo.getDatabase());
+		
 		Silo.setLogIdent(LOG_IDENT);
 	}
 

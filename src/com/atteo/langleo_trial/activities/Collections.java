@@ -40,6 +40,7 @@ import com.atteo.langleo_trial.TaskManager;
 import com.atteo.langleo_trial.models.Collection;
 import com.atteo.langleo_trial.models.Language;
 import com.atteo.silo.StorableCollection;
+import com.bomot113.langleo.DictSearch.FTSData;
 
 public class Collections extends ListActivity {
 	private CollectionsAdapter adapter;
@@ -394,6 +395,7 @@ public class Collections extends ListActivity {
 			return;
 		}
 		new RestoreTask().execute();
+		
 	}
 
 	
@@ -475,11 +477,13 @@ public class Collections extends ListActivity {
 				if (!backupFile.canRead())
 					return false;
 				Langleo.copyFile(backupFile,getDatabasePath(Langleo.DATABASE_NAME));
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 				return false;
 			}
-//			Langleo.openDatabase();
+//			openDatabase();		
+
 			return true;
 
 		}
@@ -513,6 +517,7 @@ public class Collections extends ListActivity {
 					return false;
 				Langleo.copyFile(getDatabasePath(Langleo.DATABASE_NAME),
 						backupFile);
+				
 			} catch (IOException e) {
 				e.printStackTrace();
 				return false;

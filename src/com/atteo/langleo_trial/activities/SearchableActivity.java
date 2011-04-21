@@ -24,14 +24,12 @@ public class SearchableActivity extends ListActivity {
 	private final int REQUEST_EDIT_WORD = 2;
 	private String query="";
 	private Cursor cursor;
-	private FTSData SearchableData;
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.words_list);
 		
-		this.SearchableData = new FTSData(getApplicationContext());
-		
+	
 	    // Get the intent, verify the action and get the query
 	    Intent intent = getIntent();
 	    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
@@ -91,7 +89,7 @@ public class SearchableActivity extends ListActivity {
             FTSData.KEY_WORD,
             FTSData.KEY_TRANSLATION};
 
-        return this.SearchableData.getWordMatchesTransNWords(query, columns);
+        return FTSData.getWordMatchesTransNWords(query, columns);
     }
     
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {

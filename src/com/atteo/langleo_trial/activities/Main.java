@@ -1,5 +1,7 @@
 package com.atteo.langleo_trial.activities;
 
+import java.io.IOException;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -20,6 +22,7 @@ import com.atteo.langleo_trial.R;
 import com.atteo.langleo_trial.views.NumberPicker;
 import com.atteo.langleo_trial.views.SelectLimitDialog;
 import com.atteo.silo.Silo;
+import com.bomot113.langleo.DictSearch.FTSData;
 
 public class Main extends Activity {
 	private boolean forceStudy = false;
@@ -94,6 +97,11 @@ public class Main extends Activity {
 			e.putString("version", Langleo.VERSION);
 			e.commit();
 			showUpdates();
+			try {
+				FTSData.updateDBConfig();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
 

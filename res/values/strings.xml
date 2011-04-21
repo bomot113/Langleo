@@ -180,6 +180,6 @@
 	<string name="loading_index">Loading index...</string>
 	<string name="loading_words">Loading words...</string>
 	<string name="words">words</string>
-	<string name="search_label">Search_Label</string>
-	<string name="search_hint">Search_Hint</string>
+	<string name="search_label">Search all</string>
+	<string name="search_hint">type to search</string>
 </resources>
