@@ -81,6 +81,13 @@ public class Main extends Activity {
 	private boolean firstRun(SharedPreferences prefs) {
 		boolean firstRun = prefs.getBoolean("first_run", true);
 		if (firstRun) {
+			// Load FTS Data at the first time because
+			// the default database without FTSData is loaded 
+			try {
+				FTSData.updateFTSData();
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
 			Editor e = prefs.edit();
 			e.putString("version", Langleo.VERSION);
 			e.putBoolean("first_run", false);
@@ -98,7 +105,7 @@ public class Main extends Activity {
 			e.commit();
 			showUpdates();
 			try {
-				FTSData.updateDBConfig();
+				FTSData.updateFTSData();
 			} catch (IOException e1) {
 				e1.printStackTrace();
 			}

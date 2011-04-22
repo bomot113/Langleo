@@ -52,7 +52,7 @@ public class FTSData {
 	    public static void setDatabaseVersion(Context context, int newVersion){
 			// TBM: update version
 			FTSData.activateFTSData(context, Silo.getDatabase());
-			new SQLiteOpenHelper(context, Langleo.DATABASE_NAME, null, 43) {
+			new SQLiteOpenHelper(context, Langleo.DATABASE_NAME, null, newVersion) {
 				
 				@Override
 				public void onUpgrade(SQLiteDatabase paramSQLiteDatabase, int paramInt1,
@@ -66,8 +66,8 @@ public class FTSData {
 				}
 			};
 	    }
-	    public static void updateDBConfig() throws IOException{
-	    	mDatabaseOpenHelper.configDatabase(mDatabase);
+	    public static void updateFTSData() throws IOException{
+	    	mDatabaseOpenHelper.loadDictionary(mDatabase);
 	    }
 	    /**
 	     * Builds a map for all columns that may be requested, which will be given to the 
@@ -228,30 +228,21 @@ public class FTSData {
 
 	        @Override
 	        public void onCreate(SQLiteDatabase db) {
-	            try {
-					configDatabase(db);
-				} catch (IOException e) {
-					throw new RuntimeException(e);
-				}
+	        	loadDictionary(db);
 	        }
-
-	        public void configDatabase(SQLiteDatabase mDatabase) throws IOException {
-	        	
-	            Log.d(TAG, "Loading FTS data.");
-	            loadDictionary(mDatabase);
-	            Log.d(TAG, "DONE loading FTS data.");				
-			}
 
 			/**
 	         * Starts a thread to load the database table with words
 	         */
-	        private static void loadDictionary(SQLiteDatabase mDatabase) {
+	        private void loadDictionary(SQLiteDatabase mDatabase) {
 	        	final SQLiteDatabase db = mDatabase;
 	            new Thread(new Runnable() {
 	                public void run() {
 	                    try {
+	        	            Log.d(TAG, "Loading FTS data.");
 	                    	db.execSQL(FTS_TABLE_CLEAR);
 	                        loadWords(db);
+	                        Log.d(TAG, "DONE loading FTS data.");		
 	                    } catch (IOException e) {
 	                        throw new RuntimeException(e);
 	                    }
@@ -259,7 +250,7 @@ public class FTSData {
 	            }).start();
 	        }
 
-	        private static void loadWords(SQLiteDatabase mDatabase) throws IOException {
+	        private void loadWords(SQLiteDatabase mDatabase) throws IOException {
 	            Log.d(TAG, "Loading words...");
 	    		String query = 
 	    			"SELECT substr( c.name || '          ',1,10) as Collection_Name, "+
@@ -285,6 +276,7 @@ public class FTSData {
                         Log.e(TAG, "unable to add word: " + word.trim());
                     }
 	            }
+	            cursor.close();
 	            Log.d(TAG, "DONE loading words.");
 	        }
 
@@ -292,7 +284,7 @@ public class FTSData {
 	         * Add a word to the dictionary.
 	         * @return rowId or -1 if failed
 	         */
-	        public static long addWord(SQLiteDatabase mDatabase, String word, String translation, String path, long id) {
+	        public long addWord(SQLiteDatabase mDatabase, String word, String translation, String path, long id) {
 	            ContentValues initialValues = new ContentValues();
 	            initialValues.put(KEY_WORD, word);
 	            initialValues.put(KEY_TRANSLATION, translation);
