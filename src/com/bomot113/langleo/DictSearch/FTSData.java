@@ -37,7 +37,6 @@ public class FTSData {
             " USING fts3 (" +
             KEY_WORD + ", " +
             KEY_TRANSLATION + ", " +
-            KEY_PATH + ", " + 
             KEY_ID +");";	    
 	    /**
 	     * Constructor
@@ -270,8 +269,7 @@ public class FTSData {
 	                String word = cursor.getString(2);
 	                String translation = cursor.getString(3);
 	                long id = cursor.getLong(4);
-	                String path = collection.trim()+ "..\\" + list.trim() + "..";
-	                id = addWord(mDatabase, word.trim(), translation.trim(), path, id);
+	                id = addWord(mDatabase, word.trim(), translation.trim(), id);
                     if (id < 0) {
                         Log.e(TAG, "unable to add word: " + word.trim());
                     }
@@ -284,11 +282,10 @@ public class FTSData {
 	         * Add a word to the dictionary.
 	         * @return rowId or -1 if failed
 	         */
-	        public long addWord(SQLiteDatabase mDatabase, String word, String translation, String path, long id) {
+	        public long addWord(SQLiteDatabase mDatabase, String word, String translation, long id) {
 	            ContentValues initialValues = new ContentValues();
 	            initialValues.put(KEY_WORD, word);
 	            initialValues.put(KEY_TRANSLATION, translation);
-	            initialValues.put(KEY_PATH, path);
 	            initialValues.put(KEY_ID, id);
 	            return mDatabase.insert(FTS_VIRTUAL_TABLE, null, initialValues);
 	        }

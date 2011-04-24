@@ -180,6 +180,9 @@
 	<string name="loading_index">Loading index...</string>
 	<string name="loading_words">Loading words...</string>
 	<string name="words">words</string>
+	<!-- TBM: resource for search tool -->
 	<string name="search_label">Search all</string>
 	<string name="search_hint">type to search</string>
+	<string name="go_list">Go to list</string>
+	
 </resources>
