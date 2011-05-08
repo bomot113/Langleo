@@ -58,7 +58,8 @@ public class Lists extends ListActivity {
 	private final int REQUEST_EXPORT = 4;
 	private final int REQUEST_DOWNLOAD = 5;
 	private final int REQUEST_LIST_WORDS = 6;
-
+	private final int REQUEST_CRAM_LIST = 7;
+	
 	private final int DIALOG_DELETING = 1;
 	private final int DIALOG_PREPARING = 2;
 
@@ -185,10 +186,22 @@ public class Lists extends ListActivity {
 		case R.id.edit_list:
 			editList(info.id);
 			return true;
+		case R.id.cram_list:
+			cramList(info.id);
+			return true;
 		default:
 			return super.onContextItemSelected(item);
 		}
 
+	}
+
+	private void cramList(long id) {
+		// TODO Auto-generated method stub
+		Intent intent = new Intent(getApplicationContext(), Cram.class);
+		intent.putExtra("list", new List((int) id).toBundle());
+		intent.putExtra("limit_increase", 0);
+		startActivityForResult(intent, REQUEST_CRAM_LIST);
+		
 	}
 
 	public boolean onOptionsItemSelected(MenuItem menuItem) {

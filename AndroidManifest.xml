@@ -37,6 +37,9 @@
 			android:stateNotNeeded="true" />
 		<activity android:name=".activities.Study"
 			android:launchMode="singleTask" android:screenOrientation="portrait" />
+		<!-- TBM: Added Cram feature -->
+		<activity android:name=".activities.Cram"
+			android:launchMode="singleTask" android:screenOrientation="portrait" />
 		<!-- TBM: Searchable activity -->
 		<activity android:name=".activities.SearchableActivity">
 			<intent-filter>

@@ -32,13 +32,15 @@ import com.atteo.langleo_trial.models.StudyDay;
 import com.atteo.langleo_trial.models.StudySession;
 import com.atteo.langleo_trial.models.Word;
 import com.atteo.silo.Silo;
-import com.atteo.silo.StorableCollection;
 import com.atteo.silo.Silo.RunningMode;
+import com.atteo.silo.StorableCollection;
 import com.bomot113.langleo.DictSearch.FTSData;
+import com.bomot113.langleo.algorithms.CramAlgorithm;
 
 public class Langleo extends Application {
 
 	static private LearningAlgorithm learningAlgorithm = null;
+	static private LearningAlgorithm crammingAlgorithm = null;
 	static private Context dbContext;
 	
 	public static final String DEFAULT_NEW_WORDS_PER_DAY = "20";
@@ -155,6 +157,8 @@ public class Langleo extends Application {
 
 		learningAlgorithm = new Olli();
 
+		crammingAlgorithm = new CramAlgorithm();
+		
 		dbContext = this;
 		
 		openDatabase();
@@ -189,6 +193,10 @@ public class Langleo extends Application {
 		return learningAlgorithm;
 	}
 
+	public static LearningAlgorithm getCrammingAlgorithm(){
+		return crammingAlgorithm;
+	}
+	
 	public static void openDatabase() {
 		Silo.open(dbContext, DATABASE_NAME, MIGRATIONS, RunningMode.PRODUCTION);
 		Silo.initializeClass(Collection.class);
