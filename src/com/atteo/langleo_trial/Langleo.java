@@ -118,8 +118,8 @@ public class Langleo extends Application {
 			"    suggest_text_2 = NEW.Translation " +
 			"WHERE wordID = NEW.ID; " + 
 			"END;",
-
-	// "create table ollianswer(id integer primary key autoincrement, repetitions integer, difficulty integer, factor real, correct integer, incorrect integer)"
+			"ALTER TABLE word ADD COLUMN reversible INTEGER DEFAULT 0",
+			"ALTER TABLE word ADD COLUMN lastRepe_isReversed INTEGER DEFAULT 0",
 	};
 
 	public static String DATABASE_NAME = "Langleo";

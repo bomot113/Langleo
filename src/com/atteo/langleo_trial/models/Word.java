@@ -14,11 +14,15 @@ public class Word extends Storable {
 	private String note;
 	@DatabaseField
 	private Boolean studied = false;
+	@DatabaseField
+	private Boolean reversible = false;
 	@BelongsTo
 	private List list;
 	@HasOne(foreignField = "word", dependent = true)
 	private Question question;
-
+	@DatabaseField
+	private Boolean lastRepe_isReversed = false;
+	
 	public Word() {
 		super();
 	}
@@ -70,4 +74,21 @@ public class Word extends Storable {
 	public Question getQuestion() {
 		return question;
 	}
+
+	public void setReversible(Boolean reversible) {
+		this.reversible = reversible;
+	}
+
+	public Boolean getReversible() {
+		return reversible;
+	}
+
+	public void setLastRepe_isReversed(Boolean lastRepe_isReversed) {
+		this.lastRepe_isReversed = lastRepe_isReversed;
+	}
+
+	public Boolean getLastRepe_isReversed() {
+		return lastRepe_isReversed;
+	}
+	
 }

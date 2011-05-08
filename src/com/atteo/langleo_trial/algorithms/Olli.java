@@ -741,6 +741,14 @@ public class Olli implements LearningAlgorithm {
 
 			if (answer == LearningAlgorithm.ANSWER_CORRECT) {
 				question.addCorrect();
+				// challenge the users next time by scramble 
+				// the word and the translation
+				Word w = question.getWord();
+				if (w.getReversible()){
+					boolean lastRepe_isReversed = w.getLastRepe_isReversed();
+					w.setLastRepe_isReversed(!lastRepe_isReversed);
+					w.save();
+				}
 				float factor = getFactor(question.getRepetitions(), question
 						.getDifficulty());
 
@@ -766,5 +774,6 @@ public class Olli implements LearningAlgorithm {
 			return null;
 		}
 	}
+
 
 }

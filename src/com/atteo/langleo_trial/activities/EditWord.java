@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import com.atteo.langleo_trial.R;
@@ -43,6 +44,9 @@ public class EditWord extends Activity {
 				new_word();
 			}
 		});
+
+		CheckBox cb_reversible = (CheckBox) findViewById(R.id.edit_word_reversible);
+		cb_reversible.setChecked(word.getReversible());
 
 		TextView tv_word = (TextView) findViewById(R.id.edit_word_word);
 		tv_word.setText(word.getWord());
@@ -83,12 +87,14 @@ public class EditWord extends Activity {
 		TextView tv_word = (TextView) findViewById(R.id.edit_word_word);
 		TextView tv_translation = (TextView) findViewById(R.id.edit_word_translation);
 		TextView tv_note = (TextView) findViewById(R.id.edit_word_note);
+		CheckBox cb_reversible = (CheckBox) findViewById(R.id.edit_word_reversible);
 		String word_ = tv_word.getText().toString();
 		String translation = tv_translation.getText().toString();
 		String note = tv_note.getText().toString();
 		word.setWord(word_);
 		word.setTranslation(translation);
 		word.setNote(note);
+		word.setReversible(cb_reversible.isChecked());			
 		intent.putExtra("word", word.toBundle());
 
 		setResult(RESULT_OK, intent);

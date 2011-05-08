@@ -514,10 +514,16 @@ public class Study extends Activity {
 			questionTargetLanguage = c.getTargetLanguage();
 			questionTargetLanguage.load();
 		}
+		
 		tv_word.setText(w.getWord());
-		tv_note.setText(w.getNote());
 		tv_translation.setText(w.getTranslation());
-
+		tv_note.setText(w.getNote());
+		// TBM: switch translation's place and that of word		
+		if (w.getReversible() && !w.getLastRepe_isReversed()) {
+			tv_word.setText(w.getTranslation());
+			tv_translation.setText(w.getWord());
+		};
+		
 		baseLanguageImage.setImageDrawable(getResources().getDrawable(
 				getResources().getIdentifier(
 						"flag_" + questionBaseLanguage.getName().toLowerCase(),

@@ -121,7 +121,20 @@ public class CramAlgorithm implements LearningAlgorithm {
 			if (answer != LearningAlgorithm.ANSWER_INCORRECT)
 				questionsAnswered++;
 
+			if (answer == LearningAlgorithm.ANSWER_CORRECT &&
+					question.getWord().isStudied()) {
+				// challenge the users next time by scramble 
+				// the word and the translation
+				Word w = question.getWord();
+				if (w.getReversible()){
+					boolean lastRepe_isReversed = w.getLastRepe_isReversed();
+					w.setLastRepe_isReversed(!lastRepe_isReversed);
+					w.save();
+				}
+			}
+			
 			if (answer != LearningAlgorithm.ANSWER_CORRECT) {
+
 				int oneThird = questions.size() / 3;
 				questions.add(
 						random.nextInt(questions.size() + 1

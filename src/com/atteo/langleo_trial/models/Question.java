@@ -25,7 +25,7 @@ public class Question extends Storable {
 	private Integer correct = 0;
 	@DatabaseField
 	private Long previousInterval = (long) 0;
-
+	
 	public Long getPreviousInterval() {
 		return previousInterval;
 	}
@@ -110,5 +110,7 @@ public class Question extends Storable {
 	public Collection getCollection() {
 		return collection;
 	}
+
+
 
 }

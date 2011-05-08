@@ -22,6 +22,9 @@
 		android:layout_height="wrap_content" android:hint="@string/note"
 		android:id="@+id/edit_word_note"/>
 
+	<CheckBox android:text="@string/word_reversible"
+		android:id="@+id/edit_word_reversible" android:layout_width="wrap_content"
+		android:layout_height="wrap_content" android:layout_margin="10sp"></CheckBox>
 
 
 	<LinearLayout android:id="@+id/LinearLayout02"
