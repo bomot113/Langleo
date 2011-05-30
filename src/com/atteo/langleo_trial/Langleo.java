@@ -99,16 +99,10 @@ public class Langleo extends Application {
 			"    WHERE wordID = OLD.ID; "+ 
 			"END;",
 			"CREATE  TRIGGER  IF NOT EXISTS \"i_tWord\" AFTER INSERT ON word FOR EACH ROW  BEGIN "+ 
-			"INSERT INTO FTSDictionary (suggest_text_1, suggest_text_2, suggest_text_3, WordID) "+
+			"INSERT INTO FTSDictionary (suggest_text_1, suggest_text_2, WordID) "+
 			"SELECT "+ 
 			"       NEW.Word as suggest_text_1, " +
 			"       NEW.Translation as suggest_text_2, " +
-			"       (SELECT  trim(substr( c.name || '          ',1,10) ) || \"..|\" ||"+
-			"        	    trim(substr( l.name || '          ',1,10) ) || \"..\"" +
-			"        FROM collection c "+
-			"        JOIN list l " +
-			"          ON c.id = l.collection_id" +
-			"        WHERE l.id = NEW.list_id ) as suggest_text_3," +
 			"       (SELECT last_insert_rowid()) as WordID;" +
 			" END;",
 			"CREATE  TRIGGER  IF NOT EXISTS \"u_tWord\" AFTER UPDATE ON Word FOR EACH ROW " +  

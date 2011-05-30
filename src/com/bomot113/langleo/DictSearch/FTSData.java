@@ -1,6 +1,8 @@
 package com.bomot113.langleo.DictSearch;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import android.app.SearchManager;
@@ -15,7 +17,10 @@ import android.provider.BaseColumns;
 import android.util.Log;
 
 import com.atteo.langleo_trial.Langleo;
+import com.atteo.langleo_trial.models.Question;
+import com.atteo.langleo_trial.models.Word;
 import com.atteo.silo.Silo;
+import com.atteo.silo.StorableCollection;
 
 
 public class FTSData {
@@ -24,7 +29,6 @@ public class FTSData {
 	    //The columns we'll include in the dictionary table
 	    public static final String KEY_WORD = SearchManager.SUGGEST_COLUMN_TEXT_1;
 	    public static final String KEY_TRANSLATION = SearchManager.SUGGEST_COLUMN_TEXT_2;
-	    public static final String KEY_PATH = "suggest_text_3";
 	    public static final String KEY_ID = "WordID";
 	    
 	    private static final String FTS_VIRTUAL_TABLE = "FTSdictionary";
@@ -78,7 +82,6 @@ public class FTSData {
 	        HashMap<String,String> map = new HashMap<String,String>();
 	        map.put(KEY_WORD, KEY_WORD);
 	        map.put(KEY_TRANSLATION, KEY_TRANSLATION);
-	        map.put(KEY_PATH, KEY_PATH);
 	        map.put(BaseColumns._ID, KEY_ID + " AS " +
 	                BaseColumns._ID);
 	        map.put(SearchManager.SUGGEST_COLUMN_INTENT_DATA_ID, "rowid AS " +
@@ -251,30 +254,18 @@ public class FTSData {
 
 	        private void loadWords(SQLiteDatabase mDatabase) throws IOException {
 	            Log.d(TAG, "Loading words...");
-	    		String query = 
-	    			"SELECT substr( c.name || '          ',1,10) as Collection_Name, "+
-	                  "substr( l.name || '          ',1,10) as List_Name, "+
-	                  "w.word as Word, "+
-	                  "w.translation as Translation, "+ 
-	                  "w.id as id "+
-	    			"FROM collection c "+
-	    			"INNER JOIN list l"+
-	    			"   on c.id = l.collection_id "+
-	    			"INNER JOIN word w "+
-	    			"   on l.id = w.list_id ";
-	            Cursor cursor = Silo.query(query, null);
-	            while (cursor.moveToNext()) {
-	                String collection = cursor.getString(0);
-	                String list = cursor.getString(1);
-	                String word = cursor.getString(2);
-	                String translation = cursor.getString(3);
-	                long id = cursor.getLong(4);
-	                id = addWord(mDatabase, word.trim(), translation.trim(), id);
+	            StorableCollection storableCollection = new StorableCollection(
+	    				Word.class);
+	    		ArrayList<Word> loadedWords = storableCollection.toArrayList();
+	    		int questionTotal = loadedWords.size();
+	    		long id = -1;
+	    		for(int i=0; i<questionTotal; i++){
+	    			Word w = loadedWords.get(i);
+	                id = addWord(mDatabase, w.getWord().trim(), w.getTranslation().trim(), w.getId());
                     if (id < 0) {
-                        Log.e(TAG, "unable to add word: " + word.trim());
+                        Log.e(TAG, "unable to add word: " + w.getWord().trim());
                     }
-	            }
-	            cursor.close();
+	    		}
 	            Log.d(TAG, "DONE loading words.");
 	        }
 

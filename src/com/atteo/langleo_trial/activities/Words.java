@@ -98,7 +98,6 @@ public class Words extends ListActivity {
 			Intent intent = new Intent(getApplicationContext(), EditWord.class);
 			Word word = new Word();
 			word.setList(list);
-
 			intent.putExtra("word", word.toBundle());
 			startActivityForResult(intent, REQUEST_NEW_WORD);
 			break;

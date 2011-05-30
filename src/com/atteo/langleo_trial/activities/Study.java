@@ -85,6 +85,8 @@ public class Study extends Activity {
 		public void onInit(int status) {
 			if (status == TextToSpeech.SUCCESS) {
 				Word w = currentQuestion.getWord().l();
+				//TBM: reverse speaking if needed
+				readTranslation = w.getReversible() && !w.getLastRepe_isReversed();
 				audioIsOn(true);
 				read(w);
 			} else
@@ -247,6 +249,7 @@ public class Study extends Activity {
 
 			@Override
 			public void onGestureFinish(Gesture gesture) {
+
 				if (gesture == Gesture.CENTER) {
 					tv_translation.setVisibility(View.VISIBLE);
 					tv_note.setVisibility(View.VISIBLE);
@@ -255,7 +258,6 @@ public class Study extends Activity {
 						return;
 
 					Word w = currentQuestion.getWord();
-
 					List list = w.getList();
 					list.load();
 					Collection c = list.getCollection();
@@ -370,7 +372,7 @@ public class Study extends Activity {
 	}
 
 	private String prepareToSpeak(String string) {
-		return string.replaceAll("\\([^)]*\\)", "");
+		return string.replaceAll("\\([^)<>,]*\\)", "");
 	}
 
 	@Override
@@ -520,6 +522,7 @@ public class Study extends Activity {
 		tv_note.setText(w.getNote());
 		// TBM: switch translation's place and that of word		
 		if (w.getReversible() && !w.getLastRepe_isReversed()) {
+			readTranslation = true;
 			tv_word.setText(w.getTranslation());
 			tv_translation.setText(w.getWord());
 		};
