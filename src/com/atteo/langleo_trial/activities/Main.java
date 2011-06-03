@@ -1,7 +1,5 @@
 package com.atteo.langleo_trial.activities;
 
-import java.io.IOException;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
@@ -22,7 +20,6 @@ import com.atteo.langleo_trial.R;
 import com.atteo.langleo_trial.views.NumberPicker;
 import com.atteo.langleo_trial.views.SelectLimitDialog;
 import com.atteo.silo.Silo;
-import com.bomot113.langleo.DictSearch.FTSData;
 
 public class Main extends Activity {
 	private boolean forceStudy = false;
@@ -81,13 +78,6 @@ public class Main extends Activity {
 	private boolean firstRun(SharedPreferences prefs) {
 		boolean firstRun = prefs.getBoolean("first_run", true);
 		if (firstRun) {
-			// Load FTS Data at the first time because
-			// the default database without FTSData is loaded 
-			try {
-				FTSData.updateFTSData();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
 			Editor e = prefs.edit();
 			e.putString("version", Langleo.VERSION);
 			e.putBoolean("first_run", false);
@@ -104,11 +94,6 @@ public class Main extends Activity {
 			e.putString("version", Langleo.VERSION);
 			e.commit();
 			showUpdates();
-			try {
-				FTSData.updateFTSData();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
 		}
 	}
 

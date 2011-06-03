@@ -8,6 +8,8 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.SystemClock;
 import android.speech.tts.TextToSpeech;
@@ -53,7 +55,7 @@ public class Study extends Activity {
 			tv_time_estimation;
 	private LinearLayout new_word_buttons, normal_buttons;
 	private TouchGestureControlOverlay gestures;
-	private ImageView baseLanguageImage, targetLanguageImage;
+	private ImageView baseLanguageImage, targetLanguageImage, wordViewImage;
 	private ProgressBar progressBar = null;
 
 	private Chronometer chronometer;
@@ -85,8 +87,9 @@ public class Study extends Activity {
 		public void onInit(int status) {
 			if (status == TextToSpeech.SUCCESS) {
 				Word w = currentQuestion.getWord().l();
-				//TBM: reverse speaking if needed
-				readTranslation = w.getReversible() && !w.getLastRepe_isReversed();
+				// TBM: reverse speaking if needed
+				readTranslation = w.getReversible()
+						&& !w.getLastRepe_isReversed();
 				audioIsOn(true);
 				read(w);
 			} else
@@ -96,15 +99,7 @@ public class Study extends Activity {
 	};
 
 	private void startAudio() {
-		// if (tts == null)
 		tts = new TextToSpeech(this, ttsInitListener);
-		// else {
-		// Word w = currentQuestion.getWord();
-		// w.load();
-		// read(w);
-		// audioIsOn();
-		// }
-
 	}
 
 	private void stopAudio() {
@@ -117,28 +112,32 @@ public class Study extends Activity {
 		if (!isAudioOn())
 			return;
 		if (readTranslation) {
-			if (TextToSpeech.LANG_AVAILABLE == tts.
-					isLanguageAvailable(new Locale(questionTargetLanguage
+			if (TextToSpeech.LANG_AVAILABLE == tts
+					.isLanguageAvailable(new Locale(questionTargetLanguage
 							.getShortName()))) {
 				tts.setLanguage(new Locale(questionTargetLanguage
 						.getShortName()));
 				tts.speak(prepareToSpeak(w.getTranslation()), 1, null);
 			} else if (!noTranslationLanguageShown) {
-				Toast.makeText(this, getString(R.string.no_voice_data,
-						questionTargetLanguage.getName()), Toast.LENGTH_LONG).show();
+				Toast.makeText(
+						this,
+						getString(R.string.no_voice_data,
+								questionTargetLanguage.getName()),
+						Toast.LENGTH_LONG).show();
 				noTranslationLanguageShown = true;
 			}
 		} else {
 			if (TextToSpeech.LANG_AVAILABLE == tts
 					.isLanguageAvailable(new Locale(questionBaseLanguage
 							.getShortName()))) {
-				tts
-						.setLanguage(new Locale(questionBaseLanguage
-								.getShortName()));
+				tts.setLanguage(new Locale(questionBaseLanguage.getShortName()));
 				tts.speak(prepareToSpeak(w.getWord()), 1, null);
 			} else if (!noWordLanguageShown) {
-				Toast.makeText(this, getString(R.string.no_voice_data,
-						questionBaseLanguage.getName()), Toast.LENGTH_LONG).show();
+				Toast.makeText(
+						this,
+						getString(R.string.no_voice_data,
+								questionBaseLanguage.getName()),
+						Toast.LENGTH_LONG).show();
 				noWordLanguageShown = true;
 			}
 		}
@@ -192,6 +191,7 @@ public class Study extends Activity {
 
 		baseLanguageImage = (ImageView) findViewById(R.id.study_base_language_image);
 		targetLanguageImage = (ImageView) findViewById(R.id.study_target_language_image);
+		wordViewImage = (ImageView) findViewById(R.id.image_word_view);
 
 		progressBar = (ProgressBar) findViewById(R.id.study_progress_bar);
 
@@ -231,13 +231,13 @@ public class Study extends Activity {
 			}
 		});
 
-//		button = (Button) findViewById(R.id.study_button_not_new);
-//		button.setOnClickListener(new OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				answer(LearningAlgorithm.ANSWER_NOT_NEW);
-//			}
-//		});
+		// button = (Button) findViewById(R.id.study_button_not_new);
+		// button.setOnClickListener(new OnClickListener() {
+		// @Override
+		// public void onClick(View v) {
+		// answer(LearningAlgorithm.ANSWER_NOT_NEW);
+		// }
+		// });
 
 		gestures = new TouchGestureControlOverlay(this);
 		gestures.setGestureListener(new GestureListener() {
@@ -276,7 +276,8 @@ public class Study extends Activity {
 
 				if (gesture == Gesture.DOWN && isAudioOn()) {
 					if (currentQuestion.getRepetitions() == -1)
-						answer(LearningAlgorithm.ANSWER_CONTINUE); // NOT_NEW was here
+						answer(LearningAlgorithm.ANSWER_CONTINUE); // NOT_NEW
+																	// was here
 					else
 						answer(LearningAlgorithm.ANSWER_INCORRECT);
 				}
@@ -332,6 +333,18 @@ public class Study extends Activity {
 				new PrepareTask().execute();
 		}
 
+	}
+
+	private void loadImage(Word word) {
+		byte[] image = word.getImage();
+		if (image != null && image.length != 0) {
+			Bitmap bitmap = BitmapFactory.decodeByteArray(image, 0,
+					image.length);
+			this.wordViewImage.setImageBitmap(bitmap);
+			this.wordViewImage.setVisibility(View.VISIBLE);
+		} else {
+			this.wordViewImage.setVisibility(View.GONE);
+		}
 	}
 
 	@Override
@@ -516,17 +529,18 @@ public class Study extends Activity {
 			questionTargetLanguage = c.getTargetLanguage();
 			questionTargetLanguage.load();
 		}
-		
+
 		tv_word.setText(w.getWord());
 		tv_translation.setText(w.getTranslation());
 		tv_note.setText(w.getNote());
-		// TBM: switch translation's place and that of word		
+		loadImage(w);
+		// TBM: switch translation's place and that of word
 		if (w.getReversible() && !w.getLastRepe_isReversed()) {
 			readTranslation = true;
 			tv_word.setText(w.getTranslation());
 			tv_translation.setText(w.getWord());
 		};
-		
+
 		baseLanguageImage.setImageDrawable(getResources().getDrawable(
 				getResources().getIdentifier(
 						"flag_" + questionBaseLanguage.getName().toLowerCase(),
@@ -616,9 +630,9 @@ public class Study extends Activity {
 			if (Study.INSTANCE.currentQuestion == null)
 				if (!Study.INSTANCE.nextQuestion())
 					return;
-			else
-				Study.INSTANCE.showQuestion();
-			
+				else
+					Study.INSTANCE.showQuestion();
+
 			if (prefs.getBoolean("audio_on", false))
 				Study.INSTANCE.startAudio();
 

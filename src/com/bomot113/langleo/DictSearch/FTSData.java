@@ -2,7 +2,6 @@ package com.bomot113.langleo.DictSearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 
 import android.app.SearchManager;
@@ -17,9 +16,7 @@ import android.provider.BaseColumns;
 import android.util.Log;
 
 import com.atteo.langleo_trial.Langleo;
-import com.atteo.langleo_trial.models.Question;
 import com.atteo.langleo_trial.models.Word;
-import com.atteo.silo.Silo;
 import com.atteo.silo.StorableCollection;
 
 
@@ -52,24 +49,8 @@ public class FTSData {
 	        mDatabase = db;
 	    }
 
-	    public static void setDatabaseVersion(Context context, int newVersion){
-			// TBM: update version
-			FTSData.activateFTSData(context, Silo.getDatabase());
-			new SQLiteOpenHelper(context, Langleo.DATABASE_NAME, null, newVersion) {
-				
-				@Override
-				public void onUpgrade(SQLiteDatabase paramSQLiteDatabase, int paramInt1,
-						int paramInt2) {
-					
-				}
-				
-				@Override
-				public void onCreate(SQLiteDatabase paramSQLiteDatabase) {
-					
-				}
-			};
-	    }
-	    public static void updateFTSData() throws IOException{
+
+	    public static void updateFTSData() {
 	    	mDatabaseOpenHelper.loadDictionary(mDatabase);
 	    }
 	    /**
@@ -256,6 +237,7 @@ public class FTSData {
 	            Log.d(TAG, "Loading words...");
 	            StorableCollection storableCollection = new StorableCollection(
 	    				Word.class);
+	            storableCollection.whereInPlace("ID not in (select WordID from FTSdictionary)");
 	    		ArrayList<Word> loadedWords = storableCollection.toArrayList();
 	    		int questionTotal = loadedWords.size();
 	    		long id = -1;

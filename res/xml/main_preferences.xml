@@ -2,12 +2,16 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
 	<PreferenceCategory android:title="@string/studying">
 		<EditTextPreference android:summary="@string/new_words_per_day_summary" android:defaultValue="20"
-			android:numeric="integer" android:title="@string/new_words_per_day"
-			android:key="new_words_per_day"></EditTextPreference>
+			android:title="@string/new_words_per_day"
+			android:key="new_words_per_day" android:numeric="integer"></EditTextPreference>
 		<EditTextPreference android:summary="@string/new_words_per_session_summary" android:defaultValue="10"
-			android:numeric="integer" android:title="@string/new_words_per_session"
-			android:key="new_words_per_session"></EditTextPreference>
-
+			android:title="@string/new_words_per_session"
+			android:key="new_words_per_session" android:numeric="integer"></EditTextPreference>
+	</PreferenceCategory>
+	<PreferenceCategory android:title="@string/database_prefs">
+		<Preference android:title="@string/refresh_cache"
+			android:key="refresh_cache"
+			android:summary="refresh cached data for searching"/>
 	</PreferenceCategory>
 
 </PreferenceScreen>

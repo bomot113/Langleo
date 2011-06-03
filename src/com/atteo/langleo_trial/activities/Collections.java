@@ -470,7 +470,7 @@ public class Collections extends ListActivity {
 
 		@Override
 		protected Boolean doInBackground(Void... params) {
-//			Langleo.closeDatabase();
+			Langleo.closeDatabase();
 			try {
 				File backupFile = new File(Environment.getExternalStorageDirectory() + "/" +
 						Langleo.DIR_NAME + "/" + Langleo.BACKUP_NAME);
@@ -482,8 +482,7 @@ public class Collections extends ListActivity {
 				e.printStackTrace();
 				return false;
 			}
-//			openDatabase();		
-
+			Langleo.openDatabase();		
 			return true;
 
 		}

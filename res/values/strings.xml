@@ -187,4 +187,8 @@
 	
 	<string name="cram">Cram(review) this list</string>
 	<string name="word_reversible">Word and Translation can be switched</string>
+	<string name="word_attachImage">Attach Image</string>
+	<string name="refresh_cache">Refresh Cache</string>
+	<string name="database_prefs">Database Configurations</string>
+	<string name="refreshing_cache">Refreshing Cache</string>
 </resources>

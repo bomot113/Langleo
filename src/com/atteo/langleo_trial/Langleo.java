@@ -16,6 +16,9 @@ import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
@@ -91,6 +94,8 @@ public class Langleo extends Application {
 			"insert into language(name,shortname, studystackid) values ('Vietnamese','vi', -1)",
 			"insert into language(name,shortname, studystackid) values ('Welsh','cy', -1)",
 			"insert into language(name,shortname, studystackid) values ('Russian','ru', 28)",
+			"ALTER TABLE word ADD COLUMN reversible INTEGER DEFAULT 0",
+			"ALTER TABLE word ADD COLUMN lastRepe_isReversed INTEGER DEFAULT 0",			
 			FTSData.FTS_TABLE_CREATE,
 			"CREATE  TRIGGER  IF NOT EXISTS \"d_tWord\" AFTER DELETE ON word FOR EACH ROW " +  
 			"BEGIN "+
@@ -112,8 +117,8 @@ public class Langleo extends Application {
 			"    suggest_text_2 = NEW.Translation " +
 			"WHERE wordID = NEW.ID; " + 
 			"END;",
-			"ALTER TABLE word ADD COLUMN reversible INTEGER DEFAULT 0",
-			"ALTER TABLE word ADD COLUMN lastRepe_isReversed INTEGER DEFAULT 0",
+			"CREATE TABLE imageword (id INTEGER PRIMARY KEY AUTOINCREMENT, imageword BLOB)",
+			"ALTER TABLE word ADD COLUMN imageword_id INTEGER DEFAULT -1",
 	};
 
 	public static String DATABASE_NAME = "Langleo";
@@ -127,6 +132,31 @@ public class Langleo extends Application {
 
 	private static SharedPreferences sharedPreferences;
 
+	private static int readDBVersion(){
+		SQLiteDatabase checkDB = null;
+		 
+    	try{
+    		String DBPath = "/data/data/" + PACKAGE
+			+ "/databases/" + DATABASE_NAME;
+    		checkDB = SQLiteDatabase.openDatabase(DBPath, null, SQLiteDatabase.OPEN_READONLY);
+     	}catch(SQLiteException e){
+     		e.printStackTrace();
+     	}
+     	int version = 0;
+     	if(checkDB != null){
+     		Cursor cursor = checkDB.rawQuery("PRAGMA user_version", null);
+			if (cursor == null) {
+	            return 0;
+	        } else if (!cursor.moveToFirst()) {
+	            cursor.close();
+	            return 0;
+	        }
+			version = cursor.getInt(0);
+			cursor.close();
+     		checkDB.close();
+     	}
+     	return version;
+	}
 	private void readPackageInfo() {
 		PACKAGE = getPackageName();
 		PackageInfo pi = null;
@@ -192,6 +222,7 @@ public class Langleo extends Application {
 	}
 	
 	public static void openDatabase() {
+		int oldVersion = readDBVersion();
 		Silo.open(dbContext, DATABASE_NAME, MIGRATIONS, RunningMode.PRODUCTION);
 		Silo.initializeClass(Collection.class);
 		Silo.initializeClass(List.class);
@@ -204,8 +235,11 @@ public class Langleo extends Application {
 		Silo.initializeClass(OlliAnswer.class);
 		// TBM: update database config for FTS search
 		FTSData.activateFTSData(dbContext, Silo.getDatabase());
-		
 		Silo.setLogIdent(LOG_IDENT);
+		if (oldVersion < MIGRATIONS.length){
+			// TBM: update database
+			FTSData.updateFTSData();
+		}
 	}
 
 	public static void closeDatabase() {

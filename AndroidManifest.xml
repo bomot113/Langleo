@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.atteo.langleo_trial"
 	android:sharedUserLabel="@string/shared_user_label"
-	android:sharedUserId="@string/shared_user_id" android:versionCode="73" android:versionName="1.2.2">
+	android:sharedUserId="@string/shared_user_id" android:versionName="1.3" android:versionCode="80">
 
 	<uses-permission android:name="android.permission.INTERNET" />
 
@@ -48,6 +48,8 @@
 	        <meta-data android:name="android.app.searchable"
 	                   android:resource="@xml/searchable"/>
 		</activity>
+		<!-- TBM: gallery activity -->
+		<activity android:name=".activities.FileList"/>
 	</application>
 	<uses-sdk android:minSdkVersion="4"/>
 
