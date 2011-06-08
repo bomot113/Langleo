@@ -1,7 +1,9 @@
 package com.atteo.langleo_trial.models;
 
+import android.database.Cursor;
 import android.os.Bundle;
 
+import com.atteo.silo.Silo;
 import com.atteo.silo.Storable;
 import com.atteo.silo.associations.BelongsTo;
 import com.atteo.silo.associations.DatabaseField;
@@ -76,11 +78,20 @@ public class Word extends Storable {
 	}
 	
 	public boolean save(){
+		int oldID = super.getId();
 		if (super.save()){
+			if (oldID == -1){
+				// there's a big problem with silo here 
+				// and then try to get away with that
+				String query = "select max(id) from "+ this.getTableName();
+				Cursor cursor = Silo.query(query, null);
+				if (cursor.moveToFirst()){
+					this.id = cursor.getInt(0);
+				}
+			}
 			return mediaWord.save();
-		} else {
-			return false;
-		}
+		} 
+		return false;
 	}
 
 	public Bundle toBundle(){
@@ -141,6 +152,6 @@ public class Word extends Storable {
 		return this.mediaWord.getImage();
 	}
 	public boolean delete(){
-		return this.mediaWord.delete(); 
+		return this.mediaWord.delete() && super.delete(); 
 	}
 }

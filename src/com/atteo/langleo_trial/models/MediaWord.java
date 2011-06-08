@@ -37,7 +37,7 @@ public class MediaWord extends ImageStorage {
 	
 	public boolean delete(){
 		this.textWord.setImage(null);
-		return super.save(textWord) && this.textWord.delete();
+		return super.save(textWord);
 		
 	}
 	public void setID(int id){

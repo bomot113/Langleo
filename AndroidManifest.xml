@@ -27,7 +27,8 @@
 		<activity android:name=".activities.Lists" />
 		<activity android:name=".activities.EditList" />
 		<activity android:name=".activities.Words" />
-		<activity android:name=".activities.EditWord" />
+		<activity android:name=".activities.EditWord">
+		</activity>
 		<activity android:name=".activities.ImportFromFile" />
 		<activity android:name=".activities.SelectFile" />
 		<activity android:name=".activities.SelectList" />
@@ -40,16 +41,35 @@
 		<!-- TBM: Added Cram feature -->
 		<activity android:name=".activities.Cram"
 			android:launchMode="singleTask" android:screenOrientation="portrait" />
+			
 		<!-- TBM: Searchable activity -->
-		<activity android:name=".activities.SearchableActivity">
+		<activity android:name=".activities.SearchableActivity" >
 			<intent-filter>
 	            <action android:name="android.intent.action.SEARCH" />
 	        </intent-filter>
 	        <meta-data android:name="android.app.searchable"
 	                   android:resource="@xml/searchable"/>
 		</activity>
-		<!-- TBM: gallery activity -->
-		<activity android:name=".activities.FileList"/>
+		
+		<activity android:name=".activities.SearchImageActivity">
+			<intent-filter>
+	            <action android:name="android.intent.action.SEARCH" />
+	        </intent-filter>
+	        <meta-data android:name="android.app.searchable"
+	                   android:resource="@xml/image_searchable"/>
+		</activity>
+		
+	<activity android:name=".activities.SearchFacade" android:launchMode="singleTop">
+		<intent-filter>
+			<action android:name="android.intent.action.SEARCH" />
+		</intent-filter>
+		<meta-data android:name="android.app.searchable"
+			android:resource="@xml/searchable" />
+		<!-- enable the base activity to send searches to itself -->
+		<meta-data android:name="android.app.default_searchable"
+			android:value=".activities.SearchFacade" />
+	</activity>
+	
 	</application>
 	<uses-sdk android:minSdkVersion="4"/>
 

@@ -4,7 +4,6 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 
 import android.app.Activity;
@@ -17,30 +16,26 @@ import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.provider.MediaStore.Images;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.atteo.langleo_trial.R;
-import com.atteo.langleo_trial.models.MediaWord;
 import com.atteo.langleo_trial.models.Word;
 
 public class EditWord extends Activity {
+	private static final int SELECT_PICTURE_LOCAL = 0;
+	private static final int SELECT_PICTURE_ONLINE = 1;
 	private String selectedImagePath;
 	private Word word;
-	private final int SELECT_PICTURE = 1;
 	private final int NEW_HEIGHT = 120;
 	private ImageView wordViewImage;
 	
@@ -98,8 +93,6 @@ public class EditWord extends Activity {
 	}
 
 	public boolean onContextItemSelected(MenuItem item) {
-		AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
-				.getMenuInfo();
 		switch (item.getItemId()) {
 		case R.id.delete_image:
 			deleteImage(word);
@@ -107,14 +100,23 @@ public class EditWord extends Activity {
 		case R.id.edit_image:
 			openGallery();
 			return true;
+		case R.id.bingsearch_image:
+			//onSearchRequested();
+			openImageSearch();
+			return true;
 		default:
 			return super.onContextItemSelected(item);
 		}
 
 	}
 
+	private void openImageSearch() {
+		Intent intent = new Intent(getApplicationContext(), SearchFacade.class);
+		startActivityForResult(intent, SELECT_PICTURE_ONLINE);
+	}
+
+
 	private void deleteImage(Word word) {
-		// TODO Auto-generated method stub
 		word.setImage(null);
 		wordViewImage.setImageResource(R.drawable.no_photo_available);
 	}
@@ -125,7 +127,7 @@ public class EditWord extends Activity {
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,
-                "Select Picture"), SELECT_PICTURE);
+                "Select Picture"), SELECT_PICTURE_LOCAL);
 		
 	}
 
@@ -145,13 +147,18 @@ public class EditWord extends Activity {
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 	    if (resultCode == RESULT_OK) {
-	        if (requestCode == SELECT_PICTURE) {
+	        if (requestCode == SELECT_PICTURE_LOCAL) {
 	            Uri selectedImageUri = data.getData();
 	            selectedImagePath = getPath(selectedImageUri);
 	            byte[] image = getImageData(selectedImagePath);
 	            image = resizeImage(image);
 	            word.setImage(image);
 	            loadImage(word);
+	        } else if (requestCode == SELECT_PICTURE_ONLINE){
+	        	byte[] image = data.getByteArrayExtra("image");
+	        	image = resizeImage(image);
+	        	word.setImage(image);
+	        	loadImage(word);
 	        }
 	    }
 	}
@@ -182,10 +189,8 @@ public class EditWord extends Activity {
 			imageData = new byte[buf.available()];
 			buf.read(imageData);
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return imageData;

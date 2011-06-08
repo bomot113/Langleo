@@ -385,7 +385,11 @@ public class Study extends Activity {
 	}
 
 	private String prepareToSpeak(String string) {
-		return string.replaceAll("\\([^)<>,]*\\)", "");
+		String needToSpeak = string.replaceAll("\\([^)]*\\)", "");
+		needToSpeak = needToSpeak.replaceAll("[\\+-]",",");
+		needToSpeak = needToSpeak.replaceAll(",+",",");
+		needToSpeak = needToSpeak.replaceAll("<>", " different from ");
+		return needToSpeak;
 	}
 
 	@Override

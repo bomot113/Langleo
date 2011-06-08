@@ -191,4 +191,9 @@
 	<string name="refresh_cache">Refresh Cache</string>
 	<string name="database_prefs">Database Configurations</string>
 	<string name="refreshing_cache">Refreshing Cache</string>
+	<!-- 	TBM: resources for image -->
+	<string name="image_empty">There\'s no image available\! please check your connection or your query string again.</string>
+	<string name="loadimage_phone">Attach existing images</string>
+	<string name="loadimage_bing">Search image online</string>
+
 </resources>

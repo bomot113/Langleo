@@ -17,6 +17,7 @@ import android.widget.Toast;
 import com.atteo.langleo_trial.Langleo;
 import com.atteo.langleo_trial.LearningAlgorithm;
 import com.atteo.langleo_trial.R;
+import com.atteo.langleo_trial.models.Word;
 import com.atteo.langleo_trial.views.NumberPicker;
 import com.atteo.langleo_trial.views.SelectLimitDialog;
 import com.atteo.silo.Silo;
@@ -72,7 +73,6 @@ public class Main extends Activity {
 				showHelp();
 			}
 		});
-
 	}
 
 	private boolean firstRun(SharedPreferences prefs) {

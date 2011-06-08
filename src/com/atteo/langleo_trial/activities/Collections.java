@@ -18,21 +18,21 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.widget.AbsListView;
+import android.widget.AbsListView.OnScrollListener;
+import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.AbsListView.OnScrollListener;
-import android.widget.AdapterView.AdapterContextMenuInfo;
 
 import com.atteo.langleo_trial.Langleo;
 import com.atteo.langleo_trial.R;
@@ -40,7 +40,6 @@ import com.atteo.langleo_trial.TaskManager;
 import com.atteo.langleo_trial.models.Collection;
 import com.atteo.langleo_trial.models.Language;
 import com.atteo.silo.StorableCollection;
-import com.bomot113.langleo.DictSearch.FTSData;
 
 public class Collections extends ListActivity {
 	private CollectionsAdapter adapter;
