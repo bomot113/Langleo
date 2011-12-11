@@ -39,6 +39,7 @@ import com.atteo.langleo_trial.R;
 import com.atteo.langleo_trial.TaskManager;
 import com.atteo.langleo_trial.models.Collection;
 import com.atteo.langleo_trial.models.Language;
+import com.atteo.langleo_trial.models.Word;
 import com.atteo.silo.StorableCollection;
 
 public class Collections extends ListActivity {
@@ -60,7 +61,11 @@ public class Collections extends ListActivity {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
+		
+		Intent intent = new Intent(getApplicationContext(), EditWord.class);
+		intent.putExtra("word", new Word(275).toBundle());
+		startActivityForResult(intent, 2);
+		
 		adapter = new CollectionsAdapter();
 
 		setListAdapter(adapter);

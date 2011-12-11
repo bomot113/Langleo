@@ -7,7 +7,6 @@ import android.database.Cursor;
 
 import com.atteo.langleo_trial.models.Word;
 import com.atteo.silo.Silo;
-import com.atteo.silo.Silo.QueryType;
 
 public class ImageStorage {
 	protected int id = -1;
